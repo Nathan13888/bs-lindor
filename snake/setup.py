@@ -41,14 +41,14 @@ class CMakeBuild(build_ext):
         print()  # Add an empty line for cleaner output
 
 setup(
-    name="gym_battlesnake",
-    version="0.0.1",
-    author="Arthur Firmino",
-    author_email="arthur.p.v.firmino@gmail.com",
+    name="bs-lindor",
+    version="0.0.0",
+    author="Nathan Chung",
+    author_email="hi@nathanchung.dev",
     description="",
     long_description="",
     long_description_content_type="text/markdown",
-    url="https://github.com/ArthurFirmino/gym-battlesnake",
+    url="https://github.com/Nathan13888/bs-lindor",
     packages=["gym_battlesnake"],
     install_requires=[
         'gym',
