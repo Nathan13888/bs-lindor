@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from setuptools import setup, find_packages, Extension
+from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
 class CMakeExtension(Extension):
@@ -41,7 +41,7 @@ class CMakeBuild(build_ext):
         print()  # Add an empty line for cleaner output
 
 setup(
-    name="bs-lindor",
+    name="bs-gym",
     version="0.0.0",
     author="Nathan Chung",
     author_email="hi@nathanchung.dev",
