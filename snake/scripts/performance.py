@@ -3,7 +3,7 @@ import torch
 import os
 from tqdm import tqdm
 import numpy as np
-from gym_battlesnake.gymbattlesnake import BattlesnakeEnv
+from bs_gym.gymbattlesnake import BattlesnakeEnv
 
 #  Let's define a method to check our performance against an older policy
 # Determines an unbiased winrate check

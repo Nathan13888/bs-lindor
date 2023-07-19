@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 from a2c_ppo_acktr.algo import PPO
 from a2c_ppo_acktr.storage import RolloutStorage
-from gym_battlesnake.gymbattlesnake import BattlesnakeEnv
+from bs_gym.gymbattlesnake import BattlesnakeEnv
 
 from performance import check_performance
 from policy import SnakePolicyBase, create_policy
@@ -43,8 +43,8 @@ best_old_policy = create_policy(env.observation_space.shape, env.action_space, S
 # Lets make the old policy the same as the current one
 best_old_policy.load_state_dict(policy.state_dict())
 
-# OR LOAD A SAVED MODEL
-# ie: policy = torch.load('saved_models/my_model.pt')
+# TODO: LOAD A SAVED MODEL
+# policy = torch.load('saved_models/my_model.pt')
 
 agent = PPO(policy,
             value_loss_coef=0.5,
@@ -72,6 +72,7 @@ print(f"Trainable Parameters: {count_parameters(policy)}")
 
 def get_modelpath(fmt):
     t = datetime.now().strftime('%H_%M_%d_%m_%Y')
+    # TODO: UUID folder group
     return 'models/'+(fmt.replace("TIME", t)) + '.pt'
 
 print("Starting training.")
@@ -95,7 +96,7 @@ start = time.time()
 for j in range(num_updates):
     episode_rewards = []
     episode_lengths = []
-    # Set
+    
     policy.eval()
     print(f"Iteration {j+1}: Generating rollouts")
     for step in tqdm(range(n_steps)):
@@ -123,7 +124,6 @@ for j in range(num_updates):
             rollouts.masks[-1]
         ).detach()
         
-    # Set the policy to be in training mode (switches modules to training mode for things like batchnorm layers)
     policy.train()
 
     print("Training policy on rollouts...")
@@ -132,7 +132,6 @@ for j in range(num_updates):
     value_loss, action_loss, dist_entropy = agent.update(rollouts)
     rollouts.after_update()
 
-    # Set the policy into eval mode (for batchnorms, etc)
     policy.eval()
     
     total_num_steps = (j + 1) * n_envs * n_steps
@@ -147,6 +146,7 @@ for j in range(num_updates):
         print("\n")
         print("=" * 80)
         print("Iteration", j+1, "Results")
+        # TODO: do in parallel
         # Check the performance of the current policy against the prior best
         winrate = check_performance(policy, best_old_policy, device=torch.device(device))#device=device)
         print(f"Winrate vs prior best: {winrate*100:.2f}%")
@@ -154,14 +154,12 @@ for j in range(num_updates):
         print(f"Max Length: {np.max(episode_lengths)}")
         print(f"Min Length: {np.min(episode_lengths)}")
 
-        # If our policy wins more than 30% of the games against the prior
-        # best opponent, update the prior best.
-        # Expected outcome for equal strength players is 25% winrate in a 4 player
-        # match.
+        # Expected outcome for equal strength players is 25% winrate in a 4 player match.
         if winrate > 0.3:
             print("Policy winrate is > 30%. Updating prior best model")
             best_old_policy.load_state_dict(policy.state_dict())
             print("Saving latest best model.")
+            # TODO: do in parallel
             torch.save(best_old_policy.state_dict(), get_modelpath(f'weights_TIME_iter{j+1}'))
         else:
             print("Policy has not learned enough yet... keep training!")
