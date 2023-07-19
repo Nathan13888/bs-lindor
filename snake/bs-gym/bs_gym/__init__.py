@@ -1,1 +1,1 @@
-name = "gym-battlesnake"
+name = "bs-gym"

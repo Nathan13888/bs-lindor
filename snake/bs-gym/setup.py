@@ -49,8 +49,8 @@ setup(
     long_description="",
     long_description_content_type="text/markdown",
     url="https://github.com/Nathan13888/bs-lindor",
-    packages=["gym_battlesnake"],
-    ext_modules=[CMakeExtension('gym_battlesnake/gym_battlesnake')],
+    packages=["bs_gym"],
+    ext_modules=[CMakeExtension('bs_gym/bs_gym')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
 )
