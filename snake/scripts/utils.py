@@ -8,7 +8,8 @@ n_envs = 208     # parallel environments
 n_steps = 600    # steps per environment to simulate
 n_opponents = 3  # number of opponents to play against
 
-CPU_THREADS = 6
+CPU_THREADS = 6 # TODO: configure
+# TODO: multigpu support
 device = torch.device('cuda')
 # device = "cpu" if not torch.has_cuda else "cuda:0"
 
@@ -68,13 +69,14 @@ class PathHelper:
         os.makedirs(self._get_grouppath(), exist_ok=True)
 
 
-    def get_modelpath(self, iteration=0):
+    def get_modelpath(self, iteration=0, custom='', ext='pt'):
         # t = datetime.now().strftime('%H_%M_%d_%m_%Y')
         # TODO: UUID folder group
 
+        if len(custom) == 0:
+            custom = f'iter{iteration}'
         self._prepare_modelgroup_path()
-        return path.join('models', self.group_name, f'iter{iteration}.pt')
+        return path.join('models', self.group_name, f'{custom}.{ext}')
 
     def get_modelpath_latest(self):
-        self._prepare_modelgroup_path()
-        return path.join('models', self.group_name, 'latest.pt')
+        return self.get_modelpath(custom='latest')
