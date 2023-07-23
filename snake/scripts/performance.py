@@ -5,8 +5,7 @@ from tqdm import tqdm
 import numpy as np
 from bs_gym.gymbattlesnake import BattlesnakeEnv
 
-#  Let's define a method to check our performance against an older policy
-# Determines an unbiased winrate check
+# TODO: execute in parallel
 def check_performance(current_policy, opponent, n_opponents=3, n_envs=1000, steps=1500, device=torch.device('cpu')):
     test_env = BattlesnakeEnv(n_threads=os.cpu_count(), n_envs=n_envs, opponents=[opponent for _ in range(n_opponents)], device=device)
     obs = test_env.reset()
@@ -15,12 +14,11 @@ def check_performance(current_policy, opponent, n_opponents=3, n_envs=1000, step
     completed = np.zeros(n_envs)
     count = 0
     lengths = []
+
     with torch.no_grad():
-        # Simulate to a maximum steps across our environments, only recording the first result in each env.
         print("Running performance check")
         for step in tqdm(range(steps)):
             if count == n_envs:
-                # Quick break
                 print("Check Performance done @ step", step)
                 break
             inp = torch.tensor(obs, dtype=torch.float32).to(device)
@@ -45,4 +43,5 @@ def check_performance(current_policy, opponent, n_opponents=3, n_envs=1000, step
     print("Wins", wins)
     print("Losses", losses)
     print("Average episode length:", np.mean(lengths))
+    
     return winrate
