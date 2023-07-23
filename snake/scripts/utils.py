@@ -65,7 +65,7 @@ class PathHelper:
         latest_model_path = self.get_modelpath_latest()
         iteration = 0
 
-        print(f'Looking for latest model in {self._get_grouppath()}')
+        # print(f'Looking for latest model in {self._get_grouppath()}')
 
         is_tmp = False
         # get the iteration number from the filename
@@ -90,7 +90,7 @@ class PathHelper:
                 except ValueError:
                     print(f'WARNING: {filename} is not a valid model name.')
                     continue
-        print(f'Latest iteration is {iteration}.')
+        # print(f'Latest iteration is {iteration}.')
         custom_fmt = 'iter' if not is_tmp else 'tmp_iter'
         iter_model_path = self.get_modelpath(iteration=iteration, custom=custom_fmt)
 
@@ -139,7 +139,7 @@ class PathHelper:
 
         # read rewards, value_losses, lengths from json file
         if path.isfile(datafile):
-            print('Loading data.')
+            # print('Loading data.')
             with open(datafile, 'r') as f:
                 data = json.load(f)
                 rewards = data['rewards']
@@ -148,7 +148,7 @@ class PathHelper:
                 dist_entropies = data['dist_entropies']
                 lengths = data['lengths']
         else:
-            print('No data file found. Starting from scratch.')
+            # print('No data file found. Starting from scratch.')
             rewards = []
             value_losses = []
             action_losses = []
@@ -180,7 +180,7 @@ class PathHelper:
         }
             
         # save data in json file
-        print('Saving data.')
+        # print('Saving data.')
         with open(datafile, 'w') as f:
             json.dump(data, f)
 
