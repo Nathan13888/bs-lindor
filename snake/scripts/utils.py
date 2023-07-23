@@ -157,14 +157,17 @@ class PathHelper:
 
         # return a dict
         # crop the the first (start_iteration - 1) elements
-        return {
+        dic = {
             'rewards': rewards[:start_iteration - 1],
             'value_losses': value_losses[:start_iteration - 1],
             'action_losses': action_losses[:start_iteration - 1],
             'dist_entropies': dist_entropies[:start_iteration - 1],
             'lengths': lengths[:start_iteration - 1],
         }
-        # return rewards, value_losses, action_losses, dist_entropies, lengths
+        assert len(dic['rewards']) == len(dic['value_losses']) == len(dic['action_losses']) == len(dic['dist_entropies']) == len(dic['lengths'])
+        assert len(dic['rewards']) <= start_iteration - 1
+        
+        return dic
 
 
     def save_data(self, rewards, value_losses, action_losses, dist_entropies, lengths, iteration, datafile=None):
