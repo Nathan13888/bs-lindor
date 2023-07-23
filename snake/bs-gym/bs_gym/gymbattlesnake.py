@@ -168,6 +168,7 @@ class BattlesnakeEnv(VecEnv):
         rews = np.zeros((self.n_envs))
 
         infoptr = env_infoptr(self.ptr)
+        # TODO: reward shaping
         for i in range(self.n_envs):
             if infoptr[i].over:
                 dones[i] = True

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(gymbattlesnake)
 
 set(CMAKE_CXX_STANDARD 14)
-set(PROJECT_DIR "${CMAKE_SOURCE_DIR}/gym_battlesnake")
+set(PROJECT_DIR "${CMAKE_SOURCE_DIR}/bs_gym")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_DIR}/cmake/Modules")
 
 find_package(Threads REQUIRED)

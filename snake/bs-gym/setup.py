@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from setuptools import setup, find_packages, Extension
+from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
 class CMakeExtension(Extension):
@@ -41,21 +41,16 @@ class CMakeBuild(build_ext):
         print()  # Add an empty line for cleaner output
 
 setup(
-    name="gym_battlesnake",
-    version="0.0.1",
-    author="Arthur Firmino",
-    author_email="arthur.p.v.firmino@gmail.com",
+    name="bs-gym",
+    version="0.0.0",
+    author="Nathan Chung",
+    author_email="hi@nathanchung.dev",
     description="",
     long_description="",
     long_description_content_type="text/markdown",
-    url="https://github.com/ArthurFirmino/gym-battlesnake",
-    packages=["gym_battlesnake"],
-    install_requires=[
-        'gym',
-        'numpy',
-        'stable-baselines==2.10.0',
-    ],
-    ext_modules=[CMakeExtension('gym_battlesnake/gym_battlesnake')],
+    url="https://github.com/Nathan13888/bs-lindor",
+    packages=["bs_gym"],
+    ext_modules=[CMakeExtension('bs_gym/bs_gym')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
 )

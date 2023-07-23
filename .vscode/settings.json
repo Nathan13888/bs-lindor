@@ -1,0 +1,7 @@
+{
+    "python.analysis.extraPaths": [
+        "./snake/pytorch-a2c-ppo-acktr-gail"
+    ],
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
+}
