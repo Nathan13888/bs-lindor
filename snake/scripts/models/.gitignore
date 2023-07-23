@@ -1,2 +1,4 @@
 *.pt
 *.safetensors
+
+*.json
