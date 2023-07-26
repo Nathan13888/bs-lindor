@@ -48,13 +48,10 @@ print('Loading model from:', MODEL_PATH)
 if MODEL_PATH is None:
     sys.exit(1)
 
-# configure rollouts
+
+
+# tmp environment for loading policy
 tmp_env = BattlesnakeEnv(n_threads=CPU_THREADS, n_envs=n_envs)
-# rollouts = RolloutStorage(n_steps,
-#                           n_envs,
-#                           tmp_env.observation_space.shape,
-#                           tmp_env.action_space,
-#                           n_steps)
 tmp_env.close()
 
 # Load policy
@@ -65,49 +62,12 @@ policy.to(device)
 policy.eval()
 
 
-# environment
-opponent_policies = [policy for _ in range(7)]
-
-# TODO: ???
-# Do some sanity checks
-
-
-#     def predict(self):
-#         obs = env.reset()
-#         with torch.no_grad():
-#             inp = torch.tensor(obs, dtype=torch.float32).to(device)
-#             action, _ = current_policy.predict(inp, deterministic=True)
-#             obs, reward, done, info = env.step(action.cpu().numpy().flatten())
-
-#             print(reward)
-#             print(done)
-#             print(info)
-#             print(obs)
-
-
-
 # Start server to accept inference requests
 from fastapi import FastAPI
 from typing import List
 from pydantic import BaseModel
 
 import time
-from collections import defaultdict
-
-# dictionary of strings to BattlesnakeEnv
-environments = defaultdict(lambda: None)
-
-# def get_env(id) -> BattlesnakeEnv:
-#     global environments, opponent_policies
-
-#     # check if environments contains id
-#     if id not in environments:
-#         # create a new environment
-#         env = BattlesnakeEnv(n_threads=CPU_THREADS, n_envs=n_envs, opponents=opponent_policies, device=device)
-#         environments[id] = env
-
-#     # return from dictionary
-#     return environments[id]
 
 app = FastAPI()
 
@@ -132,28 +92,8 @@ class Frames(BaseModel):
 
 InferenceRequest.model_rebuild()
 
-# @app.post("/api/start")
-# def start():
-#     # TODO: logging
-#     get_env(id)
-
-# @app.post("/api/end")
-# def stop():
-#     global environments
-
-#     # delete environment from dictionary
-#     if id in environments:
-#         environments[id].close()
-#         del environments[id]
-#         logger.info(f"Removed environment with id {id}")
-#     else:
-#         logger.warning(f"Environment with id {id} does not exist")
-
 @app.post("/api/predict")
 def predict(req: InferenceRequest):
-    # TODO: logging with UUID
-    # TODO: time inference
-
     id = req.id
     # width = req.width
     # height = req.height
@@ -176,44 +116,14 @@ def predict(req: InferenceRequest):
     ]
     obs = np.asarray(array, dtype=np.uint8)
 
-    # logger.info(f'Received inference for {id}')
+    logger.info(f'Received inference for {id}')
 
     startTime = time.time()
 
-    # get environment
-    # env = get_env(id)
-
-
     # execute interence on environment
     with torch.no_grad():
-
-
         inp = torch.tensor(obs, dtype=torch.float32).to(device)
-
         action, value = policy.predict(inp, deterministic=True)
-
-        # test_env = BattlesnakeEnv(n_threads=os.cpu_count(), n_envs=1, opponents=[policy for _ in range(1)], device=device)
-        # obs, reward, done, info = test_env.step(action.cpu().numpy().flatten())
-
-
-        # tmp = ''
-        # tmp += 25 * '-' + '\n'
-        # for x in range(23):
-        #     tmp += '|'
-        #     for y in range(23):
-        #         if obs[2][ x][y] >0:
-        #             tmp += (f'{obs[2][x][y]}')
-        #         else:
-        #             tmp += '_'
-        #     tmp += '|\n'
-        
-        # tmp += 25 * '-' + '\n'
-        # tmp += f'ACTION: {action.cpu().numpy().flatten()}' + '\n'
-        # with open('boards.txt', 'a') as f:
-        #     f.write(tmp)
-        # print(action)
-        # print(value)
-
 
     # bench time
     endTime = time.time()
