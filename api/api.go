@@ -66,6 +66,10 @@ func postEnd(c *fiber.Ctx) error {
 }
 
 // TODO: implement on the fly options
+// TODO: implement redundant APIs
+// TODO: implement backup RL API
+// TODO: health check
+// TODO: API stats: processes requests, avg res time, etc
 
 func postMove(c *fiber.Ctx) error {
 	// TODO: (parallel) board size, game mode, move turn, move time
@@ -110,19 +114,19 @@ func postMove(c *fiber.Ctx) error {
 
 	switch action {
 	case MOVE_LEFT:
-		log.Debug().Msg("moving left")
+		log.Debug().Str("uuid", uuid).Msg("moving left")
 		move = "left"
 	case MOVE_RIGHT:
-		log.Debug().Msg("moving right")
+		log.Debug().Str("uuid", uuid).Msg("moving right")
 		move = "right"
 	case MOVE_UP:
-		log.Debug().Msg("moving up")
+		log.Debug().Str("uuid", uuid).Msg("moving up")
 		move = "up"
 	case MOVE_DOWN:
-		log.Debug().Msg("moving down")
+		log.Debug().Str("uuid", uuid).Msg("moving down")
 		move = "down"
 	default:
-		log.Error().Msg("invalid move")
+		log.Error().Str("uuid", uuid).Msg("invalid move")
 	}
 
 	log.Info().Str("uuid", uuid).

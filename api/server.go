@@ -103,13 +103,31 @@ func configureLogger(debug bool) {
 func getHealth(c *fiber.Ctx) error {
 	log.Info().Msg("Health check.")
 
-	// TODO: ping RL server
 	return c.SendStatus(200)
+}
+
+type StatusResponse struct {
+	Status       string `json:"status"`
+	BuildVersion string `json:"build_version"`
+	BuildTime    string `json:"build_time"`
+	BuildUser    string `json:"build_user"`
+	BuildGOOS    string `json:"build_goos"`
+	BuildARCH    string `json:"build_arch"`
+	GOOS         string `json:"goos"`
+	GOARCH       string `json:"goarch"`
 }
 
 func getStatus(c *fiber.Ctx) error {
 	log.Info().Msg("Status check.")
 
-	// TODO: implement
-	return c.SendStatus(200)
+	return c.JSON(&StatusResponse{
+		Status:       "ok",
+		BuildVersion: BuildVersion,
+		BuildTime:    BuildTime,
+		BuildUser:    BuildUser,
+		BuildGOOS:    BuildGOOS,
+		BuildARCH:    BuildARCH,
+		GOOS:         GOOS,
+		GOARCH:       GOARCH,
+	})
 }
