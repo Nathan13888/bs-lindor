@@ -11,10 +11,11 @@ import (
 type SnakeMove int
 
 const (
-	MOVE_LEFT  SnakeMove = 0
-	MOVE_RIGHT SnakeMove = 1
-	MOVE_UP    SnakeMove = 2
-	MOVE_DOWN  SnakeMove = 3
+	// {'u', 'd', 'l', 'r'}
+	MOVE_LEFT  SnakeMove = 2
+	MOVE_RIGHT SnakeMove = 3
+	MOVE_UP    SnakeMove = 1
+	MOVE_DOWN  SnakeMove = 0
 	MOVE_ERROR SnakeMove = -1 // a suitable move couldn't be found
 )
 
@@ -47,6 +48,7 @@ func postEnd(c *fiber.Ctx) error {
 		log.Error().Err(err).Msg("failed to get GameState")
 	}
 	log.Info().Str("uuid", genUUID(state)).
+		Int("length", state.Turn).
 		Msg("Ending game.")
 
 	// job := PostRequest{
@@ -73,25 +75,19 @@ func postMove(c *fiber.Ctx) error {
 
 	// send job requests to RL API and tree search
 
-	// force move after timeout
-
-	// tree_scores = tree.compute_scores(game_state)# Check if the policy action is a loser in the future
-	// if tree_scores[policy_action] == -Infinity:
-	// 		return best_action(tree_scores)# Check if tree search found a winning move
-	// if any tree_scores is Infinity:
-	// 		return best_action(tree_scores)# Base case: use policy network move
-	// return policy_action
-
 	state, err := getState(c)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to get GameState")
 	}
 
 	uuid := genUUID(state)
-
 	log.Info().Str("uuid", uuid).Msg("Moving snake.")
 
+	// TODO:
+	// force move after timeout
+
 	// query RL API
+	// TODO: query backup RL
 
 	infRes, err := getRLMove(uuid, state)
 	if err != nil {
@@ -106,9 +102,13 @@ func postMove(c *fiber.Ctx) error {
 		Float64("value", infRes.Value).
 		Msg("got RL move")
 
+	action := infRes.Action
+
+	// TODO: query tree search
+
 	move := "up" // TODO: default move
 
-	switch infRes.Action {
+	switch action {
 	case MOVE_LEFT:
 		log.Debug().Msg("moving left")
 		move = "left"
