@@ -2,13 +2,16 @@ package main
 
 import (
 	"os"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog/pkgerrors"
 )
 
 var (
-	LISTEN_ADDR = ":3000"
+	LISTEN_ADDR = ":7800"
 	OWNER       = "wocrekcatta"
 	HEAD        = "default"
 	TAIL        = "default"
@@ -20,7 +23,7 @@ func main() {
 	// env variables
 	LISTEN_ADDR = os.Getenv("LISTEN_ADDR")
 	if len(LISTEN_ADDR) == 0 {
-		LISTEN_ADDR = "8000"
+		LISTEN_ADDR = ":7800"
 	}
 	OWNER = os.Getenv("OWNER")
 	if len(OWNER) == 0 {
@@ -42,7 +45,7 @@ func main() {
 
 	// TODO: log env variables
 
-	// TODO: configure logger + enable debug mode
+	configureLogger(true)
 
 	// fiber app
 	app := fiber.New()
@@ -79,6 +82,23 @@ func main() {
 		log.Fatal().Err(err).Msg("Failed to start server.")
 	}
 }
+
+var timeFormat = time.RFC3339
+
+func configureLogger(debug bool) {
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	if debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
+	zerolog.TimeFieldFormat = timeFormat
+	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
+
+	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout}
+	multi := zerolog.MultiLevelWriter(consoleWriter) // TODO: add extra logging outputs
+	log.Logger = zerolog.New(multi).With().Timestamp().Logger()
+}
+
+// API endpoints
 
 func getHealth(c *fiber.Ctx) error {
 	log.Info().Msg("Health check.")
