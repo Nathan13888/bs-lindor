@@ -93,13 +93,17 @@ func getRLMove(uuid string, state GameState) (InferenceResponse, error) {
 	// find own snake's id
 	my_id := state.You.ID
 
+	// apply head hask on layer6
+	frames.L6HeadMask[state.You.Head.X+x_offset][state.You.Head.Y+y_offset] = 1
+
 	// process all opponent snakes
 	num_of_opponents := len(state.Board.Snakes) - 1
 
 	// iterate through all snakes on the board
 	eliminated := true // used to check if board has own snake
 	doubled_tails := 0
-	for n, snake := range state.Board.Snakes {
+	// for n, snake := range state.Board.Snakes {
+	for _, snake := range state.Board.Snakes {
 		if snake.ID == my_id && snake.Health > 0 {
 			eliminated = false
 		}
@@ -116,12 +120,9 @@ func getRLMove(uuid string, state GameState) (InferenceResponse, error) {
 		}
 
 		// look for equal or longer snakes' head to layer3
-		if snake.Length >= state.You.Length {
+		if snake.Length >= state.You.Length && snake.ID != my_id {
 			frames.L3SnakeLength[snake.Head.X+x_offset][snake.Head.Y+y_offset] = 1
 		}
-
-		// apply head hask on layer6
-		frames.L6HeadMask[snake.Head.X+x_offset][snake.Head.Y+y_offset] = 1
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// ALL BODY SEGMENTS (including head + tail)
@@ -140,11 +141,16 @@ func getRLMove(uuid string, state GameState) (InferenceResponse, error) {
 			// add segment numbers to layer2 (in descending order to 1)
 			frames.L2Segments[snake.Body[i].X+x_offset][snake.Body[i].Y+y_offset] = total_segmants - i
 
+			// skip self for layer8/layer9
+			if snake.ID == my_id {
+				continue
+			}
+
 			// look for equal or longer snakes' bodies to layer8
 			if snake.Length >= state.You.Length {
-				frames.L8BodiesGTE[snake.Body[i].X+x_offset][snake.Body[i].Y+y_offset] = 1
+				frames.L8BodiesGTE[snake.Body[i].X+x_offset][snake.Body[i].Y+y_offset] = 1 + snake.Length - state.You.Length
 			} else { // otherwise add them to layer9
-				frames.L9BodiesLT[snake.Body[i].X+x_offset][snake.Body[i].Y+y_offset] = 1
+				frames.L9BodiesLT[snake.Body[i].X+x_offset][snake.Body[i].Y+y_offset] = -snake.Length + state.You.Length
 			}
 
 		}
@@ -153,22 +159,22 @@ func getRLMove(uuid string, state GameState) (InferenceResponse, error) {
 		// TAIL ONLY
 		//////////////////////////////////////////////////////////////////////////////////////////
 
-		// check if snake is long enough to have tail
-		if total_segmants > 1 {
-			// look for doubled existing tails to layer7 using layer2
-			// iterate on all snakes up to current snake
-			for j := 0; j < n; j++ {
-				// check if current snake's tail is equal to previous snake's tail
-				tail_a := state.Board.Snakes[j].Body[total_segmants-1] // tail of some previous snake
-				tail_b := snake.Body[total_segmants-1]                 // tail of current snake
-				if tail_a.X == tail_b.X && tail_a.Y == tail_b.Y {
-					// add to layer7
-					frames.L7TailMask[tail_a.X+x_offset][tail_a.Y+y_offset] = 1
+		// check if this snake and own snake is long enough to have tail
+		// if snake.Length > 1 && state.You.Length > 1 {
+		// 	// look for doubled existing tails to layer7 using layer2
+		// 	// iterate on all snakes up to current snake
+		// 	for j := 0; j < n; j++ {
+		// 		// check if current snake's tail is equal to previous snake's tail
+		// 		tail_a := state.Board.Snakes[j].Body[total_segmants-1] // tail of some previous snake
+		// 		tail_b := snake.Body[total_segmants-1]                 // tail of current snake
+		// 		if tail_a.X == tail_b.X && tail_a.Y == tail_b.Y {
+		// 			// add to layer7
+		// 			frames.L7TailMask[tail_a.X+x_offset][tail_a.Y+y_offset] = 1
 
-					doubled_tails++
-				}
-			}
-		}
+		// 			doubled_tails++
+		// 		}
+		// 	}
+		// }
 	}
 
 	if eliminated {
@@ -187,7 +193,7 @@ func getRLMove(uuid string, state GameState) (InferenceResponse, error) {
 	//////////////////////////////////////////////////////////////////////////////////////////
 
 	// calculate alive count
-	alive_count := num_of_opponents
+	alive_count := num_of_opponents - 1
 	// set alive layer to 1 grid of width x height
 	frames.AliveCount = make([][][]int, 7)
 	for i := 0; i < 7; i++ {
@@ -208,13 +214,17 @@ func getRLMove(uuid string, state GameState) (InferenceResponse, error) {
 			// enable board mask for gameboard layer5
 			frames.L5Board[x][y] = 1
 
+			if alive_count < 0 {
+				continue
+			}
+
 			// enable board mask for alive layer
 			frames.AliveCount[alive_count][x][y] = 1
 		}
 	}
 
 	// TODO: sanity check alive_count
-	if alive_count <= 0 || alive_count > 7 {
+	if alive_count < 0 || alive_count >= 7 {
 		// TODO: warning unexpected alive_count
 		log.Warn().Int("alive_count", alive_count).
 			Msg("unexpected alive_count")
@@ -226,7 +236,7 @@ func getRLMove(uuid string, state GameState) (InferenceResponse, error) {
 
 	// get food and hazards from state.Board
 	for _, food := range state.Board.Food {
-		frames.L4Food[food.X][food.Y] = 1
+		frames.L4Food[food.X+x_offset][food.Y+y_offset] = 1
 	}
 
 	req.Input = frames
@@ -243,23 +253,21 @@ func getRLMove(uuid string, state GameState) (InferenceResponse, error) {
 		return InferenceResponse{}, err
 	}
 
-	ch := make(chan []byte)
-
 	job := PostRequest{
-		Url:     RL_API + "/api/predict",
-		Data:    reqBody,
-		Channel: ch,
+		Url:  RL_API + "/api/predict",
+		Data: reqBody,
 	}
 
 	// send request
-	err = job.PostJSON()
+	resBody, err := job.PostJSON()
 	if err != nil {
 		return InferenceResponse{}, err
 	}
 
 	// parse json into InferenceResponse
 	resObj := InferenceResponse{}
-	resBody := <-ch
+
+	log.Debug().Str("uuid", uuid).Msg("Received response from RL API.")
 
 	err = json.Unmarshal(resBody, &resObj)
 	if err != nil {
