@@ -1,0 +1,37 @@
+version: '3.8'
+
+networks:
+  bs:
+
+services:
+  api:
+    #build: ./api
+    image: ghcr.io/nathan13888/bs-lindor-api:latest
+    container_name: bs-lindor-api
+    network_mode: host
+    environment:
+      HEAD: all-seeing
+      TAIL: weight
+      LISTEN_ADDR: ":7800"
+      COLOR: "#6BCAE2"
+      RL_API: "http://rl:7801" # don't include a trailing slash
+    ports:
+      - 9990:7800
+    # networks:
+    #   - bs
+
+    # TODO: ingress
+    
+  rl:
+    build: ./snake
+    container_name: rl
+    #container_name: bs-lindor
+    ports:
+      - 7801:7801
+    expose:
+      - 7801
+    networks:
+      - bs
+
+  # TODO: sidecar
+
