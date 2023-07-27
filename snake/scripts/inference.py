@@ -9,18 +9,11 @@ from a2c_ppo_acktr.storage import RolloutStorage
 
 from policy import SnakePolicyBase, create_policy
 from utils import PathHelper
-# from utils import device
-
-# TODO: CONFIG FILE
-n_envs = 1
-n_steps = 600
 
 # torch.backends.cuda.matmul.allow_tf32 = False # Do matmul at TF32 mode.
 CPU_THREADS = os.cpu_count()
 # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-# device = torch.device('cuda')
 device = torch.device('cpu')
-MODEL_GROUP = 'test10'
 
 NUM_LAYERS = 17
 LAYER_WIDTH = 23
@@ -38,10 +31,7 @@ logger.addHandler(stdout_handler)
 
 
 # get latest model
-MODEL_PATH = None
-u = PathHelper()
-u.set_modelgroup(MODEL_GROUP, read_tmp=True)
-MODEL_PATH, _ = u.get_latest_model()
+MODEL_PATH = 'latest.pt'
 
 print('Loading model from:', MODEL_PATH)
 
@@ -49,14 +39,16 @@ if MODEL_PATH is None:
     sys.exit(1)
 
 
-
 # tmp environment for loading policy
-tmp_env = BattlesnakeEnv(n_threads=CPU_THREADS, n_envs=n_envs)
+tmp_env = BattlesnakeEnv(n_threads=CPU_THREADS, n_envs=1)
 tmp_env.close()
 
 # Load policy
 policy = create_policy(tmp_env.observation_space.shape, tmp_env.action_space, SnakePolicyBase)
-policy.load_state_dict(torch.load(MODEL_PATH))
+if torch.cuda.is_available():
+  policy.load_state_dict(torch.load(MODEL_PATH))
+else:
+  policy.load_state_dict(torch.load(MODEL_PATH, map_location=torch.device('cpu')))
 
 policy.to(device)
 policy.eval()
