@@ -139,7 +139,7 @@ func getRLMove(uuid string, state GameState) (InferenceResponse, error) {
 		j := 0 // unsigned i = 0;
 		var tail_1, tail_2 Coord
 
-		for i := 0; i < total_segmants; i++ { // process all parts
+		for i := total_segmants - 1; i >= 0; i-- { // process all parts
 			if j == 0 {
 				tail_1 = snake.Body[i]
 			}
