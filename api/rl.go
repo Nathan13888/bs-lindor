@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"math"
 
 	"github.com/rs/zerolog/log"
 )
@@ -134,12 +135,32 @@ func getRLMove(uuid string, state GameState) (InferenceResponse, error) {
 		// NOTE: it's also possible a snake doesn't have a "tail" if it's 1 long
 		total_segmants := len(snake.Body)
 
+		// based on implementation in gamewrapper.cpp
+		j := 0 // unsigned i = 0;
+		var tail_1, tail_2 Coord
+
 		for i := 0; i < total_segmants; i++ { // process all parts
+			if j == 0 {
+				tail_1 = snake.Body[i]
+			}
+
+			if j == 1 {
+				tail_2 = snake.Body[i]
+
+				if tail_1.X == tail_2.X && tail_1.Y == tail_2.Y {
+					// mark double tail on layer7
+					frames.L7TailMask[tail_1.X+x_offset][tail_1.Y+y_offset] = 1
+					doubled_tails++
+				}
+			}
+
 			// add snake bodies to layer1
 			frames.L1Bodies[snake.Body[i].X+x_offset][snake.Body[i].Y+y_offset] = 1
 
 			// add segment numbers to layer2 (in descending order to 1)
-			frames.L2Segments[snake.Body[i].X+x_offset][snake.Body[i].Y+y_offset] = total_segmants - i
+			j++
+			l2_val := int(math.Min(float64(j), 255))
+			frames.L2Segments[snake.Body[i].X+x_offset][snake.Body[i].Y+y_offset] = l2_val
 
 			// skip self for layer8/layer9
 			if snake.ID == my_id {
@@ -157,24 +178,7 @@ func getRLMove(uuid string, state GameState) (InferenceResponse, error) {
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// TAIL ONLY
-		//////////////////////////////////////////////////////////////////////////////////////////
-
-		// check if this snake and own snake is long enough to have tail
-		// if snake.Length > 1 && state.You.Length > 1 {
-		// 	// look for doubled existing tails to layer7 using layer2
-		// 	// iterate on all snakes up to current snake
-		// 	for j := 0; j < n; j++ {
-		// 		// check if current snake's tail is equal to previous snake's tail
-		// 		tail_a := state.Board.Snakes[j].Body[total_segmants-1] // tail of some previous snake
-		// 		tail_b := snake.Body[total_segmants-1]                 // tail of current snake
-		// 		if tail_a.X == tail_b.X && tail_a.Y == tail_b.Y {
-		// 			// add to layer7
-		// 			frames.L7TailMask[tail_a.X+x_offset][tail_a.Y+y_offset] = 1
-
-		// 			doubled_tails++
-		// 		}
-		// 	}
-		// }
+		///////////////////////////////////////////////////////////////////////////////////////
 	}
 
 	if eliminated {
