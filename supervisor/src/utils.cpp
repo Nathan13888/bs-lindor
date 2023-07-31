@@ -8,14 +8,26 @@
 
 #include "utils.h"
 
-using namespace std;
 using JSON = nlohmann::json;
 
-string encodeMove(Direction move) {
+std::string encodeMove(Direction move) {
     JSON encodedMove;
     encodedMove["move"] = DIR_STR_MAP.at(move);
     encodedMove["shout"] = "I'm the supervisor :)";
     return encodedMove.dump();
+}
+
+std::string encodeResponse(const std::vector<std::pair<double, Direction>>& moves) {
+    JSON encodedResponse;
+    encodedResponse["moves"] = JSON::array();
+    for (auto move : moves) {
+        JSON encodedMove;
+        encodedMove["move"] = DIR_STR_MAP.at(move.second);
+        encodedMove["value"] = move.first;
+        encodedResponse["moves"].push_back(encodedMove);
+    }
+
+    return encodedResponse.dump();
 }
 
 Point parsePoint(JSON encodedPoint) {
@@ -30,7 +42,7 @@ Snake parseSnake(JSON encodedSnake, int turn) {
         free_moves = 0;
     }
     int health = encodedSnake["health"];
-    string id = encodedSnake["id"];
+    std::string id = encodedSnake["id"];
     Snake snake = Snake(health, turn, free_moves, id);
 
     for (const auto& point : encodedSnake["body"]) {
@@ -41,14 +53,10 @@ Snake parseSnake(JSON encodedSnake, int turn) {
     return snake;
 }
 
-pair<GameState, snake_index> parseGameState(const string& body) {
-    cout << endl;
-    cout << "Body: " << body << endl;
-
+std::pair<GameState, snake_index> parseGameState(const std::string& body) {
     JSON j = JSON::parse(body);
 
     JSON board = j["board"];
-    cout << "Board: " << board << endl;
 
     int height = board["height"];
     int width = board["width"];
@@ -60,10 +68,7 @@ pair<GameState, snake_index> parseGameState(const string& body) {
         gs.addFood(p);
     }
 
-    cout << "Updated Food" << endl;
-
-    string id = j["you"]["id"];
-    cout << id << endl;
+    std::string id = j["you"]["id"];
     snake_index me = -1;
     for (const auto& snake_json : board["snakes"]) {
         Snake snake = parseSnake(snake_json, turn);
@@ -73,9 +78,7 @@ pair<GameState, snake_index> parseGameState(const string& body) {
         }
     }
 
-    cout << "Updated Snakes" << endl;
-
     assert(me != -1);
 
-    return make_pair(gs, me);
+    return std::make_pair(gs, me);
 }

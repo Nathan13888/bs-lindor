@@ -6,8 +6,6 @@
 
 #include "Snake.h"
 
-using namespace std;
-
 Snake::Snake(Point start) {
     health = MAX_HEALTH;
     setAlive(true);
@@ -24,7 +22,7 @@ Snake::Snake(Point start, int free_moves) {
     this->free_moves = free_moves;
 }
 
-Snake::Snake(int health, int score, int free_moves, string id) {
+Snake::Snake(int health, int score, int free_moves, std::string id) {
     this->health = health;
     this->score = score;
     this->free_moves = free_moves;
@@ -67,7 +65,6 @@ Point Snake::makeMove(Direction dir) {
 
 Point Snake::popTail() {
     Point back = points.back();
-    // cout << "popping back snake" << <<  ": " << back.x << "," << back.y << "\n";
     points.pop_back();
     return back;
 }
@@ -77,7 +74,7 @@ size_t Snake::getSize() {
     return points.size();
 }
 
-deque<Point> Snake::getPoints() {
+std::deque<Point> Snake::getPoints() {
     return points;
 }
 
@@ -103,8 +100,8 @@ int Snake::getTurnsOccupied(Point p) {
     return points.size() - index;
 }
 
-vector<Direction> Snake::getMoves() {
-    vector<Direction> moves = vector<Direction>();
+std::vector<Direction> Snake::getMoves() {
+    std::vector<Direction> moves = std::vector<Direction>();
     Point head = getHead();
     for (auto dir : DIRECTIONS) {
         Point p = head.addMove(dir);
@@ -127,6 +124,6 @@ bool Snake::inSnake(Point p) {
     return find(points.begin(), points.end(), p) != points.end();
 }
 
-string Snake::getID() {
+std::string Snake::getID() {
     return id;
 }

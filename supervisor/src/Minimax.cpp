@@ -7,49 +7,48 @@
 
 #include "Minimax.h"
 
-using namespace std;
-
 Minimax::Minimax() {}
 
-Minimax::Minimax(double food_weight, double length_weight, double space_weight, double alive_weight) {
+Minimax::Minimax(double food_weight, double length_weight, double space_weight, double alive_weight, double depth_weight) {
     this->food_w = food_weight;
     this->length_w = length_weight;
     this->space_w = space_weight;
     this->alive_w = alive_weight;
+    this->depth_w = depth_weight;
 }
 
-double Minimax::scoreState(GameState gState, snake_index idx) const {
+double Minimax::scoreState(GameState game_state, snake_index idx) const {
     double score = 0;
-    Snake snake = gState.getSnake(idx);
+    Snake snake = game_state.getSnake(idx);
 
     // check end game
     if (!snake.isAlive()) {
-        return numeric_limits<double>::lowest();
+        return std::numeric_limits<double>::lowest();
     }
 
-    if (gState.numAlive() == 1) {
-        score = 10000;
+    if (game_state.numAlive() == 1) {
+        score += 10000;
     }
 
-    score -= gState.getTick() * turns_w;
+    score += game_state.getTick() * depth_w;
 
     // check space
-    pair<int, int> p = gState.voronoi(idx);
+    std::pair<int, int> p = game_state.voronoi(idx);
     int space = p.first;
     int owned_food = p.second;
 
     if (!space) {
-        return numeric_limits<double>::lowest();
+        return std::numeric_limits<double>::lowest();
     }
 
     score += space * space_w;
 
     // check remaining snakes
-    score += 100000.0 / gState.numAlive();
+    score += alive_w / game_state.numAlive();
 
     // check proximity to food
     Point head = snake.getHead();
-    vector<Path> paths = gState.bfsFood(head);
+    std::vector<Path> paths = game_state.bfsFood(head);
     if (!paths.empty()) {
         int food_length = owned_food;
         if (owned_food == -1) {
@@ -59,7 +58,7 @@ double Minimax::scoreState(GameState gState, snake_index idx) const {
         int life_line = snake.getHealth() - food_length;
 
         if (life_line < 0) {
-            return numeric_limits<double>::lowest();
+            return std::numeric_limits<double>::lowest();
         }
 
         score += atan(life_line) * food_w;
@@ -71,130 +70,82 @@ double Minimax::scoreState(GameState gState, snake_index idx) const {
     return score;
 }
 
-pair<double, Direction> Minimax::alphaBeta(GameState gState, snake_index idx, double alpha, double beta, int depth, int max_depth, Direction move_i, bool isMax) {
-    Snake snake = gState.getSnake(idx);
-    clock_t delta = (clock() - start) / (CLOCKS_PER_SEC / 1000);
+double Minimax::treeSearch(GameState game_state, snake_index curr_idx, snake_index our_idx, int depth) {
+    Snake curr_snake = game_state.getSnake(curr_idx);
+    Snake our_snake = game_state.getSnake(our_idx);
 
-    if (delta > MAX_TIME || !snake.isAlive() || depth > max_depth || gState.numAlive() == 1) {
-        return make_pair(scoreState(gState, idx), move_i);
+    if (depth >= depth_limit || !our_snake.isAlive() || game_state.numAlive() == 1) {
+        return scoreState(game_state, our_idx);
     }
 
-    gState.cleanup();
+    while (!curr_snake.isAlive()) {
+        curr_idx = (curr_idx + 1) % game_state.getSnakes().size();
+        curr_snake = game_state.getSnake(curr_idx);
+    }
 
-    Board board = gState.getBoard();
-    snake_index opp_idx = gState.getOpponent(idx);
-    Snake opp_snake = gState.getSnake(opp_idx);
+    snake_index next_idx = (curr_idx + 1) % game_state.getSnakes().size();
 
-    //int next_idx = (curr_idx + 1) % gState.getSnakes().size();
+    if (curr_idx == our_idx) {
+        double curr_max = std::numeric_limits<double>::lowest();
 
-    cout << "MAP: " << endl;
-    gState.getBoard().print();
-    cout << endl;
+        // search all possible moves
+        std::vector<Direction> moves = our_snake.getMoves();
+        for (Direction move : moves) {
+            GameState new_state = game_state;
+            new_state.makeMove(move, curr_idx);
+            new_state.cleanup();
+            double move_value = treeSearch(new_state, next_idx, our_idx, depth + 1);
 
-    cout << "depth: " << depth << endl;
-
-    if (isMax) {
-        double curr_max = numeric_limits<double>::min();
-        Direction curr_move;
-
-        vector<Direction> our_moves = snake.getMoves();
-        for (auto move : our_moves) {
-            GameState nState = gState;
-            nState.makeMove(move, idx);
-
-            Snake nSnake = nState.getSnake(idx);
-            Point nHead = nSnake.getHead();
-
-            double scoreAdj = 0;
-
-            // check for head on collision
-            vector<Snake> snakes = nState.getSnakes();
-            for (int i = 0; i < snakes.size(); i++) {
-                Snake other_snake = snakes[i];
-                if (i != idx && other_snake.isAlive()) {
-                    vector<Point> neighbours = nState.getBoard().expand(other_snake.getHead());
-                    for (Point neighbour : neighbours) {
-                        if(neighbour == nHead && nSnake.getSize() <= other_snake.getSize()) {
-                            scoreAdj += std::numeric_limits<double>::lowest();
-                            break;
-                        }
-                    }
-                }
-
-            }
-
-            // check whether a move is on a snake's tail where that snake can eat
-            unordered_set<snake_index> occupants = gState.getBoard().getCellOccupants(nHead);
-            if (!occupants.empty()) {
-                snake_index other_idx = *occupants.begin();
-                Snake other_snake = gState.getSnake(other_idx);
-                deque<Point> snake_points = other_snake.getPoints();
-                Point p1 = snake_points.back();
-                snake_points.pop_back();
-                Point p2 = snake_points.back();
-                if (p1 == p2) {
-                    scoreAdj += std::numeric_limits<double>::lowest();
-                }
-            }
-
-            pair<double, Direction> value = alphaBeta(nState, idx, alpha, beta, depth + 1, max_depth, move, false);
-
-            if(scoreAdj < 0) {
-                value.first = scoreAdj;
-            }
-
-            if (value.first > curr_max) {
-                curr_max = value.first;
-                curr_move = move;
-            }
-
-            if (curr_max > alpha) {
-                alpha = curr_max;
-            }
-
-            if (beta <= alpha) {
-                break;
+            if (move_value > curr_max) {
+                curr_max = move_value;
             }
         }
 
-        return make_pair(curr_max, curr_move);
+        return curr_max;
     } else {
-        double curr_min = numeric_limits<double>::max();
-        Direction curr_move;
+        double curr_min = std::numeric_limits<double>::max();
 
-        vector<Direction> opp_moves = opp_snake.getMoves();
-        for (auto move : opp_moves) {
-            GameState nState = gState;
-            if (opp_idx != idx) {
-                nState.makeMove(move, opp_idx);
-            }
+        // search all possible moves
+        std::vector<Direction> moves = curr_snake.getMoves();
+        for (Direction move : moves) {
+            GameState new_state = game_state;
+            new_state.makeMove(move, curr_idx);
+            new_state.cleanup();
+            double move_value = treeSearch(new_state, next_idx, our_idx, depth + 1);
 
-            pair<double, Direction> value = alphaBeta(nState, idx, alpha, beta, depth + 1, max_depth, move, true);
-            if (value.first < curr_min) {
-                curr_min = value.first;
-                curr_move = move;
-            }
-
-            if (curr_min < beta) {
-                beta = curr_min;
-            }
-
-            if (beta <= alpha) {
-                break;
+            if (move_value < curr_min) {
+                curr_min = move_value;
             }
         }
 
-        return make_pair(curr_min, curr_move);
+        return curr_min;
     }
 }
 
-Direction Minimax::makeMove(GameState gState, snake_index idx) {
+std::vector<std::pair<double, Direction>> Minimax::getMoves(GameState game_state, snake_index idx) {
     start = clock();
-    double alpha = numeric_limits<double>::lowest();
-    double beta = numeric_limits<double>::max();
-    pair<double, Direction> move_pair = alphaBeta(std::move(gState), idx, alpha, beta, 0, depth_limit, Direction::East, true);
+    std::vector<std::pair<double, Direction>> move_pairs;
+    Snake our_snake = game_state.getSnake(idx);
 
-    cout << double(clock() - start) / double(CLOCKS_PER_SEC);
+    snake_index next_idx = idx;
+    Snake next_snake = game_state.getSnake(next_idx);
 
-    return move_pair.second;
+    do {
+        next_idx = (next_idx + 1) % game_state.getSnakes().size();
+        next_snake = game_state.getSnake(next_idx);
+    } while (!next_snake.isAlive());
+
+    std::vector<Direction> moves = our_snake.getMoves();
+    for (Direction move : moves) {
+        GameState new_state = game_state;
+        new_state.makeMove(move, idx);
+        new_state.cleanup();
+
+        std::pair<double, Direction> move_pair = std::make_pair(treeSearch(new_state, next_idx, idx, 0), move);
+        move_pairs.push_back(move_pair);
+    }
+
+    //std::cout << "Time elapsed: " << double(clock() - start) / double(CLOCKS_PER_SEC) << "secs" << std::endl;
+
+    return move_pairs;
 }

@@ -9,8 +9,6 @@
 #include <iostream>
 #include <vector>
 
-using namespace std;
-
 typedef int snake_index;
 
 enum class CellType {
@@ -26,21 +24,21 @@ enum class Direction {
     East = 1
 };
 
-ostream& operator<<(std::ostream& o, Direction c);
+std::ostream& operator<<(std::ostream& o, Direction c);
 
 
-const vector<Direction> DIRECTIONS = {Direction::North, Direction::South, Direction::West, Direction::East};
+const std::vector<Direction> DIRECTIONS = {Direction::North, Direction::South, Direction::West, Direction::East};
 const int MAX_HEALTH = 100;
 const int HEALTH_LOSS = 1;
 const int FREE_MOVES = 2;
 
-const map<CellType, string> CELL_STR_MAP {
+const std::map<CellType, std::string> CELL_STR_MAP {
         {CellType::empty, "  "},
         {CellType::wall, "X "},
         {CellType::food, "f "}
 };
 
-const map<Direction, string> DIR_STR_MAP {
+const std::map<Direction, std::string> DIR_STR_MAP {
         {Direction::North, "up"},
         {Direction::South, "down"},
         {Direction::West, "left"},

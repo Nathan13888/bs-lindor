@@ -4,30 +4,21 @@
 #include "Minimax.h"
 #include "utils.h"
 
-using namespace std;
-
 int main() {
-    string input;
+    std::string input;
     Minimax treeSearch = Minimax();
 
-    cout << "Enter request body" << endl;
-    getline(cin, input);
+    getline(std::cin, input);
 
-    pair<GameState, snake_index> info = parseGameState(input);
-    GameState gState = info.first;
+    std::pair<GameState, snake_index> info = parseGameState(input);
+    GameState game_state = info.first;
     snake_index idx = info.second;
 
-    gState.getBoard().print();
+    //game_state.getBoard().print();
 
-    cout << "Determine move" << endl;
+    std::vector<std::pair<double, Direction>> moves = treeSearch.getMoves(game_state, idx);
 
-    Direction move = treeSearch.makeMove(gState, idx);
-
-    cout << move << endl;
-
-    string response = encodeMove(move);
-
-    cout << response;
+    std::cout << encodeResponse(moves);
 
     return 0;
 }

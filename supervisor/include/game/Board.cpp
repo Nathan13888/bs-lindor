@@ -8,8 +8,6 @@
 
 #include "Board.h"
 
-using namespace std;
-
 Board::Board(){
 }
 
@@ -40,14 +38,14 @@ void Board::print(){
         for (auto cell : row) {
             if(cell.numOccupants() > 0){
                 for(auto occupant : cell.getOccupants()){
-                    cout << occupant;
+                    std::cout << occupant;
                 }
-                cout << ' ';
+                std::cout << ' ';
             }else{
-                cout << CELL_STR_MAP.at(cell.getType());
+                std::cout << CELL_STR_MAP.at(cell.getType());
             }
         }
-        cout << endl;
+        std::cout << std::endl;
     }
 }
 
@@ -58,7 +56,7 @@ Point Board::getRandomEmptyPoint(){
         x = rand() % board.size();
         y = rand() % board[x].size();
     }while(board[y][x].getType() != CellType::empty || board[y][x].numOccupants() != 0);
-    return Point(x, y);
+    return {x, y};
 }
 
 void Board::occupyCell(Point p, snake_index idx){
@@ -81,7 +79,7 @@ void Board::setCellType(Point p, CellType type){
     board[p.y][p.x].setType(type);
 }
 
-unordered_set<snake_index> Board::getCellOccupants(Point p){
+std::unordered_set<snake_index> Board::getCellOccupants(Point p){
     return board[p.y][p.x].getOccupants();
 }
 
@@ -90,8 +88,8 @@ bool Board::isOccupantOf(Point p, snake_index idx){
     return board[p.y][p.x].isOccupant(idx);
 }
 
-vector<Point> Board::getPoints(){
-    vector<Point> points;
+std::vector<Point> Board::getPoints(){
+    std::vector<Point> points;
     for(auto y = board.begin(); y != board.end(); y++){
         for(auto x = y->begin(); x != y->end(); x++){
             Point p = Point(x - y->begin(), y - board.begin());
@@ -102,14 +100,14 @@ vector<Point> Board::getPoints(){
 }
 
 bool Board::isValid(){
-    for (auto row : board) {
+    for (const auto& row : board) {
         for (auto cell : row) {
             if(cell.numOccupants() > 1){
-                cout << "Num occupants is greater than 1" << endl;
+                std::cout << "Num occupants is greater than 1" << std::endl;
                 return false;
             }
             if(cell.numOccupants() == 1 && cell.getType() != CellType::empty){
-                cout << "Num occupants is 1 but celltype is not empty" << endl;
+                std::cout << "Num occupants is 1 but celltype is not empty" << std::endl;
                 return false;
             }
         }
@@ -121,7 +119,7 @@ void Board::placeFood(Point p){
     board[p.y][p.x].setFood();
 }
 
-size_t Board::getWidth(){
+size_t Board::getWidth() const{
     return board.size();
 }
 
@@ -137,8 +135,8 @@ bool Board::in(Point p){
     return p.y >= 0 && p.y < board.size() && p.x >= 0 && p.x < board[p.y].size();
 }
 
-vector<Point> Board::expand(Point p) {
-    vector<Point> neighbours = vector<Point>();
+std::vector<Point> Board::expand(Point p) {
+    std::vector<Point> neighbours = std::vector<Point>();
     for (auto d : DIRECTIONS) {
         Point n = p.addMove(d);
         if(in(n)){
@@ -148,11 +146,11 @@ vector<Point> Board::expand(Point p) {
     return neighbours;
 }
 
-vector<Path> Board::bfsFood(Point start){
-    vector<Path> paths;
-    queue<Point> q = queue<Point>();
-    unordered_set<Point> visited = unordered_set<Point>();
-    unordered_map<Point, Point> parent = unordered_map<Point, Point>();
+std::vector<Path> Board::bfsFood(Point start){
+    std::vector<Path> paths;
+    std::queue<Point> q = std::queue<Point>();
+    std::unordered_set<Point> visited = std::unordered_set<Point>();
+    std::unordered_map<Point, Point> parent = std::unordered_map<Point, Point>();
     visited.insert(start);
     q.push(start);
     while(!q.empty()){
@@ -179,8 +177,8 @@ vector<Path> Board::bfsFood(Point start){
 }
 
 int Board::floodFill(Point start){
-    queue<Point> q = queue<Point>();
-    unordered_set<Point> visited = unordered_set<Point>();
+    std::queue<Point> q = std::queue<Point>();
+    std::unordered_set<Point> visited = std::unordered_set<Point>();
     visited.insert(start);
     q.push(start);
     while(!q.empty()){

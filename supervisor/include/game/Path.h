@@ -10,7 +10,7 @@
 
 class Path {
     public:
-        deque<Point> path;
+        std::deque<Point> path;
         void add(Point p);
         bool exists();
         size_t length();

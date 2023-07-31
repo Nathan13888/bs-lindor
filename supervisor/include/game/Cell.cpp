@@ -25,7 +25,7 @@ size_t Cell::numOccupants(){
     return occupants.size();
 }
 
-unordered_set<snake_index> Cell::getOccupants(){
+std::unordered_set<snake_index> Cell::getOccupants(){
     return occupants;
 }
 

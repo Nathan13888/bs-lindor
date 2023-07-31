@@ -13,14 +13,14 @@
 
 using JSON = nlohmann::json;
 
-using namespace std;
+std::string encodeMove(Direction move);
 
-string encodeMove(Direction move);
+std::string encodeResponse(const std::vector<std::pair<double, Direction>>& moves);
 
 Point parsePoint(JSON encodedPoint);
 
 Snake parseSnake(JSON encodedSnake, int turn);
 
-pair<GameState, snake_index> parseGameState(const string& body);
+std::pair<GameState, snake_index> parseGameState(const std::string& body);
 
 #endif //SUPERVISOR_UTILS_H

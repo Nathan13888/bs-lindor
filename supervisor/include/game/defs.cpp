@@ -3,7 +3,7 @@
 //
 #include "defs.h"
 
-ostream& operator<<(std::ostream& o, Direction c) {
-    cout << static_cast<int>(c);
+std::ostream& operator<<(std::ostream& o, Direction c) {
+    std::cout << static_cast<int>(c);
     return o;
 }

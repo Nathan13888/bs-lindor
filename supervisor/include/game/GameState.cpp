@@ -108,9 +108,9 @@ void GameState::makeMove(Direction dir, snake_index idx) {
 
 void GameState::checkCollision(Point cur_point) {
     if (board.cellNumOccupants(cur_point) > 1) {
-        unordered_set<snake_index> occupants = board.getCellOccupants(cur_point);
-        vector<snake_index> heads;
-        vector<size_t> head_lengths;
+        std::unordered_set<snake_index> occupants = board.getCellOccupants(cur_point);
+        std::vector<snake_index> heads;
+        std::vector<size_t> head_lengths;
 
         for (auto s_index : occupants) {
             Snake cur_snake = snakes[s_index];
@@ -172,7 +172,7 @@ void GameState::cleanup() {
     for (snake_index i = 0; i < snakes.size(); i++) {
         Snake& snake = snakes[i];
         if (!snake.isAlive()) {
-            deque<Point> points = snake.getPoints();
+            std::deque<Point> points = snake.getPoints();
             for (auto point : points) {
                 board.vacateCell(point, i);
             }
@@ -184,13 +184,13 @@ void GameState::cleanup() {
         addFood();
     }
 
-    // assert(isValid());
+    assert(isValid());
     tick++;
 }
 
 bool GameState::isValid() {
     if (cur_food != max_food) {
-        cout << cur_food << " != " << max_food << endl;
+        std::cout << cur_food << " != " << max_food << std::endl;
         return false;
     }
     return isGivenValid();
@@ -199,16 +199,16 @@ bool GameState::isValid() {
 
 bool GameState::isGivenValid() {
     if (!board.isValid()) {
-        cout << "Board is not valid" << endl;
+        std::cout << "Board is not valid" << std::endl;
         return false;
     }
 
     for (snake_index i = 0; i < snakes.size(); i++) {
         Snake& snake = snakes[i];
-        deque<Point> points = snake.getPoints();
+        std::deque<Point> points = snake.getPoints();
         for (auto point : points) {
             if (snake.isAlive() && !board.isOccupantOf(point, i)) {
-                cout << "snake is alive but doesnt occupy point" << endl;
+                std::cout << "snake is alive but doesnt occupy point" << std::endl;
                 return false;
             }
         }
@@ -228,7 +228,7 @@ int GameState::getWidth() {
     return board.getWidth();
 }
 
-vector<Snake> GameState::getSnakes() {
+std::vector<Snake> GameState::getSnakes() {
     return snakes;
 }
 
@@ -236,7 +236,7 @@ void GameState::printScoreBoard() {
     int i = 0;
     for (auto snake : snakes) {
         Point head = snake.getHead();
-        cout << i << " " << snake.getHealth() << " " << snake.isAlive() << " " << head.x << "," << head.y << endl;
+        std::cout << i << " " << snake.getHealth() << " " << snake.isAlive() << " " << head.x << "," << head.y << std::endl;
         i++;
     }
 }
@@ -261,12 +261,12 @@ bool GameState::isSafe(Point p, int distance) {
     return board.getCellType(p) != CellType::wall && willBeUnnocupied(p, distance);
 }
 
-vector<Path> GameState::bfsFood(Point start) {
+std::vector<Path> GameState::bfsFood(Point start) {
     int depth  = 0;
-    vector<Path> paths;
-    queue<Point> q = queue<Point>();
-    unordered_set<Point> visited = unordered_set<Point>();
-    unordered_map<Point, Point> parent = unordered_map<Point, Point>();
+    std::vector<Path> paths;
+    std::queue<Point> q = std::queue<Point>();
+    std::unordered_set<Point> visited = std::unordered_set<Point>();
+    std::unordered_map<Point, Point> parent = std::unordered_map<Point, Point>();
 
     visited.insert(start);
     q.push(start);
@@ -306,8 +306,8 @@ vector<Path> GameState::bfsFood(Point start) {
 
 int GameState::floodFill(Point start) {
     int depth  = 0;
-    queue<Point> q = queue<Point>();
-    unordered_set<Point> visited = unordered_set<Point>();
+    std::queue<Point> q = std::queue<Point>();
+    std::unordered_set<Point> visited = std::unordered_set<Point>();
     visited.insert(start);
     q.push(start);
     q.push(DEPTH_MARK);
@@ -338,8 +338,8 @@ snake_index GameState::getOpponent(snake_index idx) {
     int depth = 0;
     Snake snake = getSnake(idx);
     Point start = snake.getHead();
-    queue<Point> q = queue<Point>();
-    unordered_set<Point> visited = unordered_set<Point>();
+    std::queue<Point> q = std::queue<Point>();
+    std::unordered_set<Point> visited = std::unordered_set<Point>();
     visited.insert(start);
     q.push(start);
     q.push(DEPTH_MARK);
@@ -376,20 +376,20 @@ snake_index GameState::getOpponent(snake_index idx) {
 }
 
 
-pair<int, int> GameState::voronoi(snake_index index) {
+std::pair<int, int> GameState::voronoi(snake_index index) {
     int depth  = 0;
     int food_depth = -1;
-    const pair<Point, snake_index> PAIR_DEPTH_MARK;
+    const std::pair<Point, snake_index> PAIR_DEPTH_MARK;
     const snake_index MARK = -1;
-    queue<pair<Point, snake_index>> q = queue<pair<Point, snake_index>>();
-    unordered_map<Point, snake_index> visited = unordered_map<Point, snake_index>();
-    vector<int> counts = vector<int>(snakes.size());
+    std::queue<std::pair<Point, snake_index>> q = std::queue<std::pair<Point, snake_index>>();
+    std::unordered_map<Point, snake_index> visited = std::unordered_map<Point, snake_index>();
+    std::vector<int> counts = std::vector<int>(snakes.size());
 
     for (int i = 0; i < snakes.size(); i++) {
         Snake snake = snakes[i];
         if (snake.isAlive()) {
             Point head = snake.getHead();
-            pair<Point, snake_index> p = pair<Point, snake_index>(head, i);
+            std::pair<Point, snake_index> p = std::pair<Point, snake_index>(head, i);
             q.push(p);
             visited[head] = i;
         }
@@ -397,7 +397,7 @@ pair<int, int> GameState::voronoi(snake_index index) {
     q.push(PAIR_DEPTH_MARK);
 
     while (!q.empty()) {
-        pair<Point, snake_index> p = q.front();
+        std::pair<Point, snake_index> p = q.front();
         q.pop();
 
         if (p == PAIR_DEPTH_MARK) {
@@ -424,7 +424,7 @@ pair<int, int> GameState::voronoi(snake_index index) {
                             food_depth = depth;
                         }
                         counts[idx]++;
-                        pair<Point, snake_index> npair = pair<Point, snake_index>(point, idx);
+                        std::pair<Point, snake_index> npair = std::pair<Point, snake_index>(point, idx);
                         visited[point] = idx;
                         q.push(npair);
                     }
@@ -432,7 +432,7 @@ pair<int, int> GameState::voronoi(snake_index index) {
             }
         }
     }
-    return make_pair(counts[index], food_depth);
+    return std::make_pair(counts[index], food_depth);
 }
 
 

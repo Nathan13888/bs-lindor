@@ -16,7 +16,7 @@ class GameState {
         int cur_food;
         int tick;
         Board board;
-        vector<Snake> snakes;
+        std::vector<Snake> snakes;
     public:
         GameState();
         GameState(int height, int width);
@@ -36,13 +36,13 @@ class GameState {
         Board getBoard();
         int getHeight();
         int getWidth();
-        vector<Snake> getSnakes();
+        std::vector<Snake> getSnakes();
         void printScoreBoard();
-        pair<int, int> voronoi(int voronoi_snake_id);
+        std::pair<int, int> voronoi(int voronoi_snake_id);
         int getTick();
         bool isSafe(Point p, int distance);
         bool willBeUnnocupied(Point p, int distance);
-        vector<Path> bfsFood(Point start);
+        std::vector<Path> bfsFood(Point start);
         snake_index getOpponent(snake_index idx);
         int floodFill(Point start);
         int numAlive();
