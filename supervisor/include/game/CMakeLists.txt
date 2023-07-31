@@ -1,0 +1,17 @@
+target_sources(supervisor
+    PRIVATE
+        GameState.cpp
+        GameState.h
+        Board.cpp
+        Board.h
+        Snake.cpp
+        Snake.h
+        Cell.cpp
+        Cell.h
+        Point.cpp
+        Point.h
+        Path.cpp
+        Path.h
+        defs.cpp
+        defs.h
+)
