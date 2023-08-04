@@ -16,7 +16,7 @@ COPY ./supervisor/* .
 
 RUN cmake . && make
 
-FROM alpine:latest
+FROM ubuntu:latest
 WORKDIR /app
 
 COPY --from=rust-builder /api/build/target/release/sidecar /app/sidecar

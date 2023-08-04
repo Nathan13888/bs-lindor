@@ -1,0 +1,7 @@
+# rust project build
+/api/target
+
+# cmake project build
+/supervisor/.idea
+/supervisor/cmake-build-debug
+/supervisor/cmake-build-release
