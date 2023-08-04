@@ -4,7 +4,7 @@ use std::process::{Command, Stdio};
 use rocket::serde::json::Json;
 use serde_json::{Value, json};
 
-const EXE_PATH: &str = "C:/Users/ethan/Documents/Personal Projects/bs-lindor/supervisor/cmake-build-release/supervisor.exe";
+const EXE_PATH: &str = "../supervisor/cmake-build-release/supervisor.exe";
 
 pub fn run(move_req: Json<Value>) -> Value {
     let mut child = Command::new(EXE_PATH)

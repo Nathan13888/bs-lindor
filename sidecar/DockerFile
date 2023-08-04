@@ -1,0 +1,30 @@
+# Rust Build
+FROM rust:1.71.0-alpine as rust-builder
+WORKDIR /api/build
+
+COPY ./api/* .
+RUN cargo build --release
+
+# C++ Build
+FROM ubuntu:latest as cpp-builder
+
+RUN apt-get update && apt-get install -y build-essential cmake
+
+WORKDIR /supervisor/build
+
+COPY ./supervisor/* .
+
+RUN cmake . && make
+
+FROM alpine:latest
+WORKDIR /app
+
+COPY --from=rust-builder /api/build/target/release/sidecar /app/sidecar
+COPY --from=cpp-builder /supervisor/build/supervisor /app/supervisor
+
+EXPOSE 7801/tcp
+
+CMD /app/sidecar
+
+
+
