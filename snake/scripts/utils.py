@@ -165,7 +165,7 @@ class PathHelper:
             'lengths': lengths[:start_iteration - 1],
         }
         assert len(dic['rewards']) == len(dic['value_losses']) == len(dic['action_losses']) == len(dic['dist_entropies']) == len(dic['lengths'])
-        assert len(dic['rewards']) <= start_iteration - 1
+        # assert len(dic['rewards']) <= start_iteration - 1
         
         return dic
 

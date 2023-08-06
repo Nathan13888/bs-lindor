@@ -18,53 +18,31 @@ class SnakePolicyBase(NNBase):
     def __init__(self, num_inputs, recurrent=False, hidden_size=None):
         # hidden_size == output_size of self.policy_head
         if hidden_size is None:
-            hidden_size = 256
+            hidden_size = 512
         super().__init__(recurrent, hidden_size, hidden_size)
-
-        # OLD NETWORK:
-        # self.base = nn.Sequential(
-        #     # nn.Conv2d(17, 32, 3),
-        #     # nn.LeakyReLU(),
-        #     # nn.Conv2d(32, 32, 3),
-        #     # nn.LeakyReLU(),
-        #     # nn.Conv2d(32, 32, 3),
-        #     # nn.LeakyReLU(),
-        # )
-        # self.pooling = nn.AdaptiveMaxPool2d(2)
-        # self.fc1 = nn.Linear(in_features=32*2*2, out_features=128)
-        # self.value_head = nn.Linear(in_features=128, out_features=1)
-        # self.policy_head = nn.Linear(in_features=128, out_features=128)
         
-        # Agent network
         self.base = nn.Sequential(
-            nn.Conv2d(17, 64, 3),
+            nn.Conv2d(17, 128, 3),
             nn.ReLU(),
-            nn.Conv2d(64, 64, 3),
+            nn.Conv2d(128, 128, 3),
             nn.ReLU(),
-            nn.Conv2d(64, 64, 3),
+            nn.Conv2d(128, 128, 3),
             nn.ReLU(),
-            # nn.Conv2d(17, 64, 3),
-            # nn.LeakyReLU(),
-            # nn.Conv2d(64, 64, 3),
-            # nn.LeakyReLU(),
-            # nn.Conv2d(64, 64, 3),
-            # nn.LeakyReLU(),
+            nn.Conv2d(128, 128, 3),
+            nn.ReLU(),
         )
         self.pooling = nn.AdaptiveMaxPool2d(2)
-        self.fc1 = nn.Linear(in_features=256, out_features=256)
-        self.value_head = nn.Linear(in_features=256, out_features=1)
-        self.policy_head = nn.Linear(in_features=256, out_features=256)
+        self.fc1 = nn.Linear(in_features=512, out_features=512)
+        self.value_head = nn.Linear(in_features=512, out_features=1)
+        self.policy_head = nn.Linear(in_features=512, out_features=512)
 
 
         init_cnn(self)
         
     def forward(self, obs, rnn_hxs, masks):
         out = F.relu(self.base(obs))
-        out = self.pooling(out).view(-1, 256)
+        out = self.pooling(out).view(-1, 512)
         out = F.relu(self.fc1(out))
-        # out = F.leaky_relu(self.base(obs))
-        # out = self.pooling(out).view(-1, 256)
-        # out = F.leaky_relu(self.fc1(out))
         
         value_out = self.value_head(out)
         policy_out = self.policy_head(out)

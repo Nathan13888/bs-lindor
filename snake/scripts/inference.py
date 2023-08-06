@@ -10,10 +10,12 @@ from a2c_ppo_acktr.storage import RolloutStorage
 from policy import SnakePolicyBase, create_policy
 from utils import PathHelper
 
+os.environ["CUDA_VISIBLE_DEVICES"]=""
+
 # torch.backends.cuda.matmul.allow_tf32 = False # Do matmul at TF32 mode.
 CPU_THREADS = os.cpu_count()
-# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-device = torch.device('cpu')
+FORCE_CPU = True
+device = torch.device('cuda' if not FORCE_CPU and torch.cuda.is_available() else 'cpu')
 
 NUM_LAYERS = 17
 LAYER_WIDTH = 23
@@ -45,7 +47,7 @@ tmp_env.close()
 
 # Load policy
 policy = create_policy(tmp_env.observation_space.shape, tmp_env.action_space, SnakePolicyBase)
-if torch.cuda.is_available():
+if not FORCE_CPU and torch.cuda.is_available():
   policy.load_state_dict(torch.load(MODEL_PATH))
 else:
   policy.load_state_dict(torch.load(MODEL_PATH, map_location=torch.device('cpu')))
@@ -56,6 +58,9 @@ policy.eval()
 
 # Start server to accept inference requests
 from fastapi import FastAPI
+import nest_asyncio
+import uvicorn
+
 from typing import List
 from pydantic import BaseModel
 
@@ -156,3 +161,8 @@ def health():
 
 # TODO: ???
 # Record statistics/metrics
+
+
+# TODO: change port to env
+nest_asyncio.apply()
+uvicorn.run(app, host='0.0.0.0', port=7801)
