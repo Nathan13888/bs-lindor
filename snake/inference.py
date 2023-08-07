@@ -7,8 +7,8 @@ import numpy as np
 from bs_gym.gymbattlesnake import BattlesnakeEnv
 from a2c_ppo_acktr.storage import RolloutStorage
 
-from policy import SnakePolicyBase, create_policy
-from utils import PathHelper
+from bs_lindor.policy import SnakePolicyBase, create_policy
+from bs_lindor.utils import PathHelper
 
 os.environ["CUDA_VISIBLE_DEVICES"]=""
 
